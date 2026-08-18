@@ -39,7 +39,6 @@ public class ChatRepository {
             String matrixToken,
             long channelPrngSeed) {
 
-        // Delegujemy ciężką pracę do domeny (kompresja, kryptografia, steganografia, sieć)
         return MessageProcessor.processAndSendMessage(
                 text,
                 conversationId,
@@ -47,6 +46,7 @@ public class ChatRepository {
                 matrixRoomId,
                 matrixToken,
                 channelPrngSeed,
+                false,
                 db
         );
     }

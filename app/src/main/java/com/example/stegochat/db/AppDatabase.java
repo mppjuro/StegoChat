@@ -8,10 +8,11 @@ import androidx.room.RoomDatabase;
 
 import net.sqlcipher.database.SupportFactory;
 
-@Database(entities = {ChatMessage.class}, version = 1, exportSchema = false)
+@Database(entities = {ChatMessage.class, Contact.class}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract ChatDao chatDao();
+    public abstract ContactDao contactDao();
 
     private static volatile AppDatabase INSTANCE;
 
@@ -25,6 +26,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
                                     AppDatabase.class, "stegochat_encrypted.db")
                             .openHelperFactory(factory)
+                            .fallbackToDestructiveMigration()
                             .build();
                 }
             }

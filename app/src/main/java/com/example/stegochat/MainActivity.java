@@ -5,10 +5,14 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
@@ -18,6 +22,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.stegochat.service.StegoBackgroundService;
 import com.example.stegochat.ui.ChatAdapter;
 import com.example.stegochat.ui.ChatViewModel;
+import com.example.stegochat.ui.ContactsActivity;
+import com.example.stegochat.ui.QrScanActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,21 +35,24 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Zapytanie o uprawnienia do powiadomień (wymagane w Android 13+ dla Foreground Service)
+        // Konfiguracja własnego Toolbara (górnej belki)
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        // Zapytanie o uprawnienia do powiadomień (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
             }
         }
 
-        // Inicjalizacja UI
+        // Inicjalizacja elementów widoku
         RecyclerView recyclerView = findViewById(R.id.chatRecyclerView);
         EditText messageInput = findViewById(R.id.messageEditText);
         Button sendButton = findViewById(R.id.sendButton);
 
         adapter = new ChatAdapter();
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        // Najnowsze wiadomości na dole
         layoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
@@ -51,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         // Podłączenie ViewModelu
         chatViewModel = new ViewModelProvider(this).get(ChatViewModel.class);
 
-        // Obserwowanie zmian w bazie danych
+        // Obserwowanie historii konwersacji z bazy danych
         chatViewModel.getChatHistory().observe(this, messages -> {
             adapter.setMessages(messages);
             if (messages.size() > 0) {
@@ -59,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Wysyłanie nowej wiadomości
+        // Obsługa wysyłania wiadomości
         sendButton.setOnClickListener(v -> {
             String text = messageInput.getText().toString();
             if (!text.isEmpty()) {
@@ -68,8 +77,36 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Uruchomienie usługi w tle (nasłuch Matrixa + Cover Traffic)
+        // Uruchomienie usługi w tle (nasłuch + Cover Traffic)
         startStegoService();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Wypełnienie górnego paska ikonami z pliku main_menu.xml
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_theme_toggle) {
+            int currentNightMode = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+            if (currentNightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
+                androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
+            } else {
+                androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES);
+            }
+            return true;
+        } else if (id == R.id.action_add_contact) {
+            startActivity(new Intent(this, QrScanActivity.class));
+            return true;
+        } else if (id == R.id.action_contacts) {
+            startActivity(new Intent(this, ContactsActivity.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void startStegoService() {
