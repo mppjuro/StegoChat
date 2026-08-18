@@ -2,7 +2,9 @@ package com.example.stegochat.crypto;
 
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
-
+import javax.crypto.spec.OAEPParameterSpec;
+import java.security.spec.MGF1ParameterSpec;
+import javax.crypto.spec.PSource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.security.KeyPairGenerator;
@@ -86,8 +88,11 @@ public class CryptoEngine {
      * Kapsułkuje (szyfruje) klucz sesyjny AES kluczem publicznym odbiorcy (RSA-OAEP).
      */
     public static byte[] encapsulateSessionKey(SecretKey sessionKey, PublicKey recipientPublicKey) throws Exception {
-        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, recipientPublicKey);
+        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPPadding");
+        OAEPParameterSpec spec = new OAEPParameterSpec(
+                "SHA-256", "MGF1", MGF1ParameterSpec.SHA1, PSource.PSpecified.DEFAULT
+        );
+        cipher.init(Cipher.ENCRYPT_MODE, recipientPublicKey, spec);
         return cipher.doFinal(sessionKey.getEncoded());
     }
 
@@ -99,8 +104,11 @@ public class CryptoEngine {
         keyStore.load(null);
         PrivateKey privateKey = (PrivateKey) keyStore.getKey(ALIAS_IDENTITY, null);
 
-        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding");
-        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        Cipher cipher = Cipher.getInstance("RSA/ECB/OAEPPadding");
+        OAEPParameterSpec spec = new OAEPParameterSpec(
+                "SHA-256", "MGF1", MGF1ParameterSpec.SHA1, PSource.PSpecified.DEFAULT
+        );
+        cipher.init(Cipher.DECRYPT_MODE, privateKey, spec);
         return cipher.doFinal(encryptedSessionKey);
     }
 

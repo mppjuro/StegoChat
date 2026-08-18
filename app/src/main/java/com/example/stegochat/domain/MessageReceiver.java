@@ -105,7 +105,7 @@ public class MessageReceiver {
                 return true;
 
             } catch (Exception e) {
-                Log.v(TAG, "Ignorowanie obrazka: " + e.getMessage());
+                Log.e(TAG, "BŁĄD ODBIORU WIADOMOŚCI: ", e);
                 return false;
             }
         });

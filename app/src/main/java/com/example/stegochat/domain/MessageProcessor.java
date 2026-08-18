@@ -96,7 +96,13 @@ public class MessageProcessor {
 
                 // 6. Pobranie przykrywki i wstrzyknięcie LSB
                 byte[] memeBytes = NetworkOrchestrator.fetchRandomMemeBytes().join();
-                Bitmap rawMemeBitmap = BitmapFactory.decodeByteArray(memeBytes, 0, memeBytes.length);
+                android.graphics.BitmapFactory.Options opts = new android.graphics.BitmapFactory.Options();
+                opts.inScaled = false;
+                opts.inPremultiplied = false;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    opts.inPreferredColorSpace = android.graphics.ColorSpace.get(android.graphics.ColorSpace.Named.SRGB);
+                }
+                Bitmap rawMemeBitmap = BitmapFactory.decodeByteArray(memeBytes, 0, memeBytes.length, opts);
                 Bitmap stegoBitmap = StegoEngine.embedData(rawMemeBitmap, finalBinaryPayload, channelPrngSeed);
 
                 // 7. Konwersja na PNG

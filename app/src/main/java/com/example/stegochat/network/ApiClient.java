@@ -16,7 +16,7 @@ public class ApiClient {
     private static MatrixApi matrixApi;
     private static OkHttpClient okHttpClient;
 
-    private static OkHttpClient getOkHttpClient() {
+    public static OkHttpClient getOkHttpClient() {
         if (okHttpClient == null) {
             okHttpClient = new OkHttpClient.Builder()
                     .connectTimeout(15, TimeUnit.SECONDS)

@@ -72,14 +72,8 @@ public class MainActivity extends AppCompatActivity {
         sendButton.setOnClickListener(v -> {
             String text = messageInput.getText().toString();
             if (!text.isEmpty()) {
-                // 1. Zapisanie wiadomości do bazy
                 chatViewModel.sendMessage(text);
                 messageInput.setText("");
-
-                // 2. WYMUSZENIE NATYCHMIASTOWEGO WYSŁANIA
-                Intent intent = new Intent(this, StegoBackgroundService.class);
-                intent.setAction(StegoBackgroundService.ACTION_SEND_PENDING);
-                startService(intent);
             }
         });
 

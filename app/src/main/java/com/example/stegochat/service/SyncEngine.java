@@ -29,7 +29,7 @@ public class SyncEngine {
     private final long channelSeed;
 
     private AtomicBoolean isRunning = new AtomicBoolean(false);
-    private String nextBatchToken = ""; // Token paginacji Matrixa
+    private String nextBatchToken = null; // Token paginacji Matrixa
 
     public SyncEngine(String matrixToken, String roomId, AppDatabase db, PublicKey partnerKey, long seed) {
         this.matrixToken = matrixToken;
@@ -102,29 +102,45 @@ public class SyncEngine {
 
     private void downloadAndProcessImage(String mxcUrl) {
         try {
-            // Konwersja mxc:// na standardowy URL HTTP z bramki Matrixa
-            String httpUrl = mxcUrl.replace("mxc://", "https://matrix-client.matrix.org/_matrix/media/v3/download/");
+            // Konwersja mxc:// na standardowy URL HTTP
+            String httpUrl = mxcUrl.replace("mxc://", "https://matrix-client.matrix.org/_matrix/client/v1/media/download/");
+            // Używamy nowoczesnego OkHttp zamiast HttpURLConnection
+            okhttp3.Request request = new okhttp3.Request.Builder()
+                    .url(httpUrl)
+                    .addHeader("Authorization", "Bearer " + matrixToken)
+                    .build();
 
-            URL url = new URL(httpUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
+            // Używamy gotowego klienta z Twojego ApiClient
+            okhttp3.Response response = com.example.stegochat.network.ApiClient.getOkHttpClient().newCall(request).execute();
 
-            InputStream input = connection.getInputStream();
+            if (!response.isSuccessful()) {
+                // Zamiast rzucać wyjątkiem dla usuniętych plików (404), elegancko je ignorujemy
+                android.util.Log.w(TAG, "Ignorowanie obrazka " + mxcUrl + " (Serwer zwrócił HTTP " + response.code() + ")");
+                return;
+            }
 
-            // --- KLUCZOWA POPRAWKA DLA STEGANOGRAFII ---
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inScaled = false;          // Wyłącza automatyczne skalowanie do DPI ekranu
-            options.inPremultiplied = false;   // Blokuje modyfikację kanałów RGB przez kanał przezroczystości
+            if (response.body() != null) {
+                java.io.InputStream input = response.body().byteStream();
 
-            Bitmap bitmap = BitmapFactory.decodeStream(input, null, options);
-            input.close();
+                // Zabezpieczenie steganografii przed zmianą pikseli
+                android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
+                options.inScaled = false;
+                options.inPremultiplied = false;
+                options.inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888;
 
-            if (bitmap != null) {
-                MessageReceiver.processIncomingImage(bitmap, channelSeed, db).join();
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    options.inPreferredColorSpace = android.graphics.ColorSpace.get(android.graphics.ColorSpace.Named.SRGB);
+                }
+
+                android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeStream(input, null, options);
+                input.close();
+
+                if (bitmap != null) {
+                    com.example.stegochat.domain.MessageReceiver.processIncomingImage(bitmap, channelSeed, db).join();
+                }
             }
         } catch (Exception e) {
-            Log.e(TAG, "Błąd pobierania obrazka: " + mxcUrl, e);
+            android.util.Log.e(TAG, "Błąd sieci podczas pobierania obrazka: " + mxcUrl, e);
         }
     }
 
