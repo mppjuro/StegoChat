@@ -41,8 +41,8 @@ import java.util.UUID;
 public class QrScanActivity extends AppCompatActivity {
 
     private AppDatabase db;
-    private final String matrixToken = "TWÓJ_TOKEN_MATRIX";
-    private final String matrixRoomId = "!twójRoomId:matrix.org";
+    private final String matrixToken = "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13";
+    private final String matrixRoomId = "!PhcUBJdMvnzrXbIrFe:matrix.org";
     private final long channelSeed = 12345L;
 
     // Skaner aparatu - wywołanie processScannedData

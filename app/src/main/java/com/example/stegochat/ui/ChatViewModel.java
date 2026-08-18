@@ -57,8 +57,8 @@ public class ChatViewModel extends AndroidViewModel {
             return;
         }
 
-        String matrixToken = "TWÓJ_TOKEN_MATRIX";
-        String matrixRoomId = "!twójRoomId:matrix.org";
+        String matrixToken = "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13";
+        String matrixRoomId = "!PhcUBJdMvnzrXbIrFe:matrix.org";
         long channelSeed = 12345L;
         String activeConvId = currentConversationIdLive.getValue();
 
