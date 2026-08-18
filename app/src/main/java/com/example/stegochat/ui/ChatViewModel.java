@@ -1,41 +1,47 @@
 package com.example.stegochat.ui;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
 import com.example.stegochat.StegoApplication;
+import com.example.stegochat.crypto.CryptoEngine;
 import com.example.stegochat.db.AppDatabase;
 import com.example.stegochat.db.ChatMessage;
 import com.example.stegochat.repository.ChatRepository;
 
+import java.security.PublicKey;
 import java.util.List;
 
 public class ChatViewModel extends AndroidViewModel {
 
     private final ChatRepository repository;
-
-    // Identyfikator aktualnie otwartej rozmowy
-    private final String currentConversationId = "default_conversation";
+    private final SharedPreferences prefs;
+    private String currentConversationId;
 
     public ChatViewModel(@NonNull Application application) {
         super(application);
         AppDatabase db = ((StegoApplication) application).getDatabase();
         repository = new ChatRepository(db);
+
+        prefs = application.getSharedPreferences("stego_prefs", Context.MODE_PRIVATE);
+        // Domyślnie otwórz "self_conversation" lub ostatnio zapisaną
+        currentConversationId = prefs.getString("last_conv_id", "self_conversation");
     }
 
-    /**
-     * Dostarcza widokowi automatycznie odświeżającą się listę wiadomości.
-     */
+    public void setConversationId(String convId) {
+        this.currentConversationId = convId;
+        prefs.edit().putString("last_conv_id", convId).apply();
+    }
+
     public LiveData<List<ChatMessage>> getChatHistory() {
         return repository.getMessages(currentConversationId);
     }
 
-    /**
-     * Przekazuje tekst z pola EditText do warstwy sieciowo-kryptograficznej.
-     */
     public void sendMessage(String text) {
         if (text == null || text.trim().isEmpty()) {
             return;
@@ -45,10 +51,9 @@ public class ChatViewModel extends AndroidViewModel {
         String matrixRoomId = "!PhcUBJdMvnzrXbIrFe:matrix.org";
         long channelSeed = 12345L;
 
-        // DO TESTÓW: Pobieramy nasz własny klucz, by móc odszyfrować swoje wiadomości
-        java.security.PublicKey testKey = null;
+        PublicKey testKey = null;
         try {
-            testKey = com.example.stegochat.crypto.CryptoEngine.getMyPublicKey();
+            testKey = CryptoEngine.getMyPublicKey();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -56,14 +61,10 @@ public class ChatViewModel extends AndroidViewModel {
         repository.sendMessage(
                 text.trim(),
                 currentConversationId,
-                testKey, // Zamiast null przekazujemy własny klucz testowy
+                testKey,
                 matrixRoomId,
                 matrixToken,
                 channelSeed
-        ).thenAccept(isSuccess -> {
-            if (!isSuccess) {
-                android.util.Log.e("ChatViewModel", "Błąd wysyłania wiadomości (np. sieć lub krypto)!");
-            }
-        });
+        );
     }
 }

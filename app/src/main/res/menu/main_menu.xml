@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_theme_toggle"
+        android:title="🌙"
+        android:orderInCategory="0"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_add_contact"
+        android:title="➕"
+        android:orderInCategory="1"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_contacts"
+        android:title="KONTAKTY"
+        android:orderInCategory="2"
+        app:showAsAction="ifRoom" />
+</menu>

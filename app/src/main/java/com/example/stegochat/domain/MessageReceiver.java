@@ -7,6 +7,7 @@ import com.example.stegochat.crypto.CryptoEngine;
 import com.example.stegochat.crypto.StegoEngine;
 import com.example.stegochat.db.AppDatabase;
 import com.example.stegochat.db.ChatMessage;
+import com.example.stegochat.db.Contact;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -66,11 +67,28 @@ public class MessageReceiver {
 
                 // 7. Parsowanie zdeserializowanego JSONa z metadanymi
                 JsonObject internalPayload = new Gson().fromJson(jsonString, JsonObject.class);
+                String msgType = internalPayload.has("type") ? internalPayload.get("type").getAsString() : "chat";
+
+                if ("handshake".equals(msgType)) {
+                    // Odbiór automatycznej wiadomości z kluczem publicznym
+                    String senderPubKeyBase64 = internalPayload.get("senderPubKey").getAsString();
+
+                    Contact existing = db.contactDao().getContactByKey(senderPubKeyBase64);
+                    if (existing == null) {
+                        Contact newContact = new Contact(senderPubKeyBase64);
+                        newContact.name = "Nowy kontakt (zeskanował Twój QR)";
+                        newContact.conversationId = java.util.UUID.randomUUID().toString();
+                        db.contactDao().insertContact(newContact);
+                        Log.d(TAG, "Zapisano nowy kontakt z Handshake!");
+                    }
+                    return true;
+                }
+
+                // 8. Zapis standardowej wiadomości do bazy danych
                 String msgId = internalPayload.get("id").getAsString();
                 long timestamp = internalPayload.get("t").getAsLong();
                 String text = internalPayload.get("msg").getAsString();
 
-                // 8. Zapis do bazy danych
                 ChatMessage chatMessage = new ChatMessage(msgId);
                 chatMessage.conversationId = expectedConversationId;
                 chatMessage.timestamp = timestamp;

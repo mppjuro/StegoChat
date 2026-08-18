@@ -3,13 +3,19 @@ package com.example.stegochat.crypto;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
-
+import java.util.zip.GZIPInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -123,5 +129,55 @@ public class CryptoEngine {
             return cert.getPublicKey();
         }
         return null;
+    }
+
+    // Kompresja klucza do GZIP i Base64 na potrzeby QR
+    public static String getCompressedPublicKeyQrString() {
+        try {
+            PublicKey key = getMyPublicKey();
+            byte[] keyBytes = key.getEncoded();
+
+            // Kompresja GZIP
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            try (GZIPOutputStream gzip = new GZIPOutputStream(bos)) {
+                gzip.write(keyBytes);
+            }
+            return android.util.Base64.encodeToString(bos.toByteArray(), android.util.Base64.NO_WRAP);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // Dekompresja GZIP i odzyskanie klucza publicznego ze skanu QR
+    public static PublicKey decodeCompressedPublicKeyFromQr(String compressedBase64) throws Exception {
+        byte[] compressedBytes = android.util.Base64.decode(compressedBase64, android.util.Base64.NO_WRAP);
+
+        // Dekompresja GZIP
+        ByteArrayInputStream bis = new ByteArrayInputStream(compressedBytes);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try (GZIPInputStream gzip = new GZIPInputStream(bis)) {
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = gzip.read(buffer)) != -1) {
+                bos.write(buffer, 0, len);
+            }
+        }
+
+        byte[] keyBytes = bos.toByteArray();
+        java.security.spec.X509EncodedKeySpec spec = new java.security.spec.X509EncodedKeySpec(keyBytes);
+        java.security.KeyFactory kf = java.security.KeyFactory.getInstance(KeyProperties.KEY_ALGORITHM_RSA);
+        return kf.generatePublic(spec);
+    }
+
+    public static String encodePublicKey(PublicKey publicKey) {
+        return android.util.Base64.encodeToString(publicKey.getEncoded(), android.util.Base64.NO_WRAP);
+    }
+
+    public static PublicKey decodePublicKey(String base64Key) throws Exception {
+        byte[] keyBytes = android.util.Base64.decode(base64Key, android.util.Base64.NO_WRAP);
+        java.security.spec.X509EncodedKeySpec spec = new java.security.spec.X509EncodedKeySpec(keyBytes);
+        java.security.KeyFactory kf = java.security.KeyFactory.getInstance(KeyProperties.KEY_ALGORITHM_RSA);
+        return kf.generatePublic(spec);
     }
 }

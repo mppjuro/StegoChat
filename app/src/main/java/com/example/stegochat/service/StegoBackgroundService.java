@@ -91,6 +91,7 @@ public class StegoBackgroundService extends Service {
                         "!PhcUBJdMvnzrXbIrFe:matrix.org",
                         "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13",
                         12345L,
+                        false,
                         db
                 ).join();
 
