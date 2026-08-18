@@ -89,9 +89,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem themeItem = menu.findItem(R.id.action_theme_toggle);
+        if (themeItem != null) {
+            int currentNightMode = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
+            if (currentNightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
+                themeItem.setTitle("☀️"); // Słońce w trybie ciemnym
+            } else {
+                themeItem.setTitle("🌙"); // Księżyc w trybie jasnym
+            }
+        }
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_theme_toggle) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.action_theme_toggle) {
             int currentNightMode = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
             if (currentNightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
                 androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
@@ -99,16 +113,15 @@ public class MainActivity extends AppCompatActivity {
                 androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES);
             }
             return true;
-        } else if (id == R.id.action_add_contact) {
-            startActivity(new Intent(this, QrScanActivity.class));
+        } else if (itemId == R.id.action_add_contact) {
+            startActivity(new Intent(this, com.example.stegochat.ui.QrScanActivity.class));
             return true;
-        } else if (id == R.id.action_contacts) {
-            startActivity(new Intent(this, ContactsActivity.class));
+        } else if (itemId == R.id.action_contacts) {
+            startActivity(new Intent(this, com.example.stegochat.ui.ContactsActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
-
     private void startStegoService() {
         Intent serviceIntent = new Intent(this, StegoBackgroundService.class);
         ContextCompat.startForegroundService(this, serviceIntent);

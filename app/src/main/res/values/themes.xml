@@ -1,12 +1,10 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Dziedziczymy po NoActionBar, aby uniknąć konfliktu z własnym Toolbarem -->
     <style name="Theme.StegoChat" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Kolory aplikacji -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/white</item>
-
-        <!-- Wymuszenie braku domyślnego Action Bara systemu -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
+        <item name="android:windowBackground">@color/windowBackgroundLight</item>
+        <item name="colorSurface">@color/surfaceLight</item>
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
     </style>

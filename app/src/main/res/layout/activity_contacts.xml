@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:fitsSystemWindows="true"
-    android:background="?android:attr/colorBackground">
+    android:background="?attr/colorSurface">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
@@ -18,16 +18,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="8dp"
-        android:gravity="center">
+        android:padding="12dp"
+        android:gravity="center"
+        android:background="?attr/colorSurface">
 
         <Button
             android:id="@+id/addContactButton"
-            android:layout_width="wrap_content"
+            android:layout_width="56dp"
             android:layout_height="wrap_content"
             android:text="➕"
-            android:textSize="18sp"
-            android:layout_marginEnd="4dp"/>
+            android:textSize="16sp"
+            android:layout_marginEnd="6dp"/>
 
         <Button
             android:id="@+id/scanButton"
@@ -35,8 +36,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="SKANUJ"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"/>
+            android:layout_marginStart="3dp"
+            android:layout_marginEnd="3dp"/>
 
         <Button
             android:id="@+id/galleryButton"
@@ -44,12 +45,13 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="WCZYTAJ"
-            android:layout_marginStart="4dp"/>
+            android:layout_marginStart="3dp"/>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/contactsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp"/>
+        android:padding="8dp"
+        android:background="?attr/colorSurface"/>
 </LinearLayout>

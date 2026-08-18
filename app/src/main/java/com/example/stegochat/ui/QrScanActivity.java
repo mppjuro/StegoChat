@@ -73,29 +73,12 @@ public class QrScanActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Twój Kod QR / Dodaj");
+            getSupportActionBar().setTitle("Twój Kod QR Tożsamości");
         }
         toolbar.setNavigationOnClickListener(v -> finish());
 
         ImageView qrImageView = findViewById(R.id.hugeQrImageView);
-        Button scanButton = findViewById(R.id.scanCameraButton);
-        Button galleryButton = findViewById(R.id.scanGalleryButton);
-
         generateAndDisplayQr(qrImageView);
-
-        scanButton.setOnClickListener(v -> {
-            ScanOptions options = new ScanOptions();
-            options.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
-            options.setPrompt("Skieruj aparat na kod QR znajomego");
-            options.setBeepEnabled(true);
-            barcodeLauncher.launch(options);
-        });
-
-        galleryButton.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK);
-            intent.setType("image/*");
-            galleryLauncher.launch(intent);
-        });
     }
 
     private void generateAndDisplayQr(ImageView imageView) {
@@ -104,7 +87,7 @@ public class QrScanActivity extends AppCompatActivity {
         if (compressedQrData != null) {
             try {
                 BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
-                Bitmap bitmap = barcodeEncoder.encodeBitmap(compressedQrData, BarcodeFormat.QR_CODE, 1000, 1000);
+                Bitmap bitmap = barcodeEncoder.encodeBitmap(compressedQrData, BarcodeFormat.QR_CODE, 4000, 4000);
                 imageView.setImageBitmap(bitmap);
             } catch (Exception e) {
                 e.printStackTrace();

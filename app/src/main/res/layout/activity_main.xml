@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E5E5E5"
+    android:background="?android:attr/windowBackground"
     android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:background="#FFFFFF"
+        android:background="?attr/colorSurface"
         android:elevation="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -51,6 +51,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Napisz bezpieczną wiadomość..."
+            android:textColor="?android:attr/textColorPrimary"
+            android:textColorHint="?android:attr/textColorSecondary"
             android:inputType="textMultiLine"
             android:maxLines="4"
             android:background="@android:color/transparent"
