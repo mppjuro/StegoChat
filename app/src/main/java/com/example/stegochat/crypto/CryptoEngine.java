@@ -111,4 +111,17 @@ public class CryptoEngine {
         signature.update(data);
         return signature.sign();
     }
+
+    /**
+     * Pobiera nasz własny klucz publiczny z Keystore (przydatne do testów "sam ze sobą").
+     */
+    public static PublicKey getMyPublicKey() throws Exception {
+        KeyStore keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER);
+        keyStore.load(null);
+        java.security.cert.Certificate cert = keyStore.getCertificate(ALIAS_IDENTITY);
+        if (cert != null) {
+            return cert.getPublicKey();
+        }
+        return null;
+    }
 }

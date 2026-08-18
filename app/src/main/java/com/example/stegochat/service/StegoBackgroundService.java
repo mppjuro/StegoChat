@@ -88,8 +88,8 @@ public class StegoBackgroundService extends Service {
                         textToHide,
                         "default_conversation",
                         null, // recipientPublicKey
-                        "!twójRoomId:matrix.org",
-                        "TWÓJ_TOKEN_MATRIX",
+                        "!PhcUBJdMvnzrXbIrFe:matrix.org",
+                        "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13",
                         12345L,
                         db
                 ).join();

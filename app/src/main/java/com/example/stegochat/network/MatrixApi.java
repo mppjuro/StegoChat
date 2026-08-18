@@ -10,17 +10,19 @@ import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
+import retrofit2.http.PUT;
 
 public interface MatrixApi {
 
     @POST("_matrix/media/v3/upload")
     Call<UploadResponse> uploadMedia(
             @Header("Authorization") String bearerToken,
+            @Header("Content-Type") String contentType,
             @Query("filename") String filename,
             @Body RequestBody fileData
     );
 
-    @POST("_matrix/client/v3/rooms/{roomId}/send/m.room.message/{txnId}")
+    @PUT("_matrix/client/v3/rooms/{roomId}/send/m.room.message/{txnId}")
     Call<Void> sendMessage(
             @Header("Authorization") String bearerToken,
             @Path("roomId") String roomId,

@@ -41,24 +41,28 @@ public class ChatViewModel extends AndroidViewModel {
             return;
         }
 
-        // Poniższe parametry w produkcyjnej aplikacji powinny być ładowane
-        // z konfiguracji powiązanej z danym "currentConversationId"
         String matrixToken = "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13";
         String matrixRoomId = "!PhcUBJdMvnzrXbIrFe:matrix.org";
         long channelSeed = 12345L;
 
+        // DO TESTÓW: Pobieramy nasz własny klucz, by móc odszyfrować swoje wiadomości
+        java.security.PublicKey testKey = null;
+        try {
+            testKey = com.example.stegochat.crypto.CryptoEngine.getMyPublicKey();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         repository.sendMessage(
                 text.trim(),
                 currentConversationId,
-                null, // W wersji finalnej podaj tu PublicKey partnera
+                testKey, // Zamiast null przekazujemy własny klucz testowy
                 matrixRoomId,
                 matrixToken,
                 channelSeed
         ).thenAccept(isSuccess -> {
-            // Ze względu na CompletableFuture, jesteśmy tutaj w tle.
-            // Opcjonalnie można tu dodać postowanie błędów do LiveData (np. Snackbar w UI)
             if (!isSuccess) {
-                // Obsługa błędu wysyłania (np. powiadomienie użytkownika)
+                android.util.Log.e("ChatViewModel", "Błąd wysyłania wiadomości (np. sieć lub krypto)!");
             }
         });
     }
