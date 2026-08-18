@@ -16,6 +16,7 @@ public class ChatMessage {
     public String plaintext;      // Czysty tekst (w bazie jest bezpieczny, bo baza używa SQLCipher)
     public boolean isOutgoing;    // true = wysłana przez nas, false = odebrana
     public int status;            // 0=PENDING (oczekuje na wysłanie jako cover traffic), 1=SENT, 2=DELIVERED
+    public boolean isHandshake;
 
     public ChatMessage(@NonNull String messageId) {
         this.messageId = messageId;

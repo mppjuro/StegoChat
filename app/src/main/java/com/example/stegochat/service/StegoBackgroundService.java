@@ -140,7 +140,7 @@ public class StegoBackgroundService extends Service {
                             "!PhcUBJdMvnzrXbIrFe:matrix.org",
                             "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13", // Czysty token bez polskich znaków
                             12345L,
-                            false,
+                            pending.isHandshake,
                             db
                     ).join();
 

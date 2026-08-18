@@ -111,11 +111,16 @@ public class SyncEngine {
             connection.connect();
 
             InputStream input = connection.getInputStream();
-            Bitmap bitmap = BitmapFactory.decodeStream(input);
+
+            // --- KLUCZOWA POPRAWKA DLA STEGANOGRAFII ---
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inScaled = false;          // Wyłącza automatyczne skalowanie do DPI ekranu
+            options.inPremultiplied = false;   // Blokuje modyfikację kanałów RGB przez kanał przezroczystości
+
+            Bitmap bitmap = BitmapFactory.decodeStream(input, null, options);
             input.close();
 
             if (bitmap != null) {
-                // Wywołanie uniwersalne bez sztywnego klucza partnera i ID konwersacji
                 MessageReceiver.processIncomingImage(bitmap, channelSeed, db).join();
             }
         } catch (Exception e) {
