@@ -59,8 +59,8 @@ public class StegoBackgroundService extends Service {
     }
 
     private void startServices() {
-        String matrixToken = "TWÓJ_TOKEN_MATRIX";
-        String roomId = "!twójRoomId:matrix.org";
+        String matrixToken = "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13";
+        String roomId = "!PhcUBJdMvnzrXbIrFe:matrix.org";
         long channelSeed = 12345L;
 
         syncEngine = new SyncEngine(matrixToken, roomId, db, null, channelSeed);

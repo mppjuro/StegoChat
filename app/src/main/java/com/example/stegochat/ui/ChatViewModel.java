@@ -43,8 +43,8 @@ public class ChatViewModel extends AndroidViewModel {
 
         // Poniższe parametry w produkcyjnej aplikacji powinny być ładowane
         // z konfiguracji powiązanej z danym "currentConversationId"
-        String matrixToken = "TWÓJ_TOKEN_MATRIX";
-        String matrixRoomId = "!twójRoomId:matrix.org";
+        String matrixToken = "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13";
+        String matrixRoomId = "!PhcUBJdMvnzrXbIrFe:matrix.org";
         long channelSeed = 12345L;
 
         repository.sendMessage(
