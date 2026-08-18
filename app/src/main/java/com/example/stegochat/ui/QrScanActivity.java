@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -33,6 +34,7 @@ import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.security.PublicKey;
 import java.util.UUID;
 
@@ -73,12 +75,63 @@ public class QrScanActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Twój Kod QR Tożsamości");
+            getSupportActionBar().setTitle("Kod QR / Skanuj");
         }
         toolbar.setNavigationOnClickListener(v -> finish());
 
         ImageView qrImageView = findViewById(R.id.hugeQrImageView);
+        Button scanButton = findViewById(R.id.scanCameraButton);
+        Button galleryButton = findViewById(R.id.scanGalleryButton);
+
         generateAndDisplayQr(qrImageView);
+
+        scanButton.setOnClickListener(v -> {
+            // Sprawdzenie i żądanie uprawnień do aparatu przed uruchomieniem skanera
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA)
+                    != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                androidx.core.app.ActivityCompat.requestPermissions(this,
+                        new String[]{android.Manifest.permission.CAMERA}, 102);
+            } else {
+                startCameraScanner();
+            }
+        });
+
+        galleryButton.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType("image/*");
+            galleryLauncher.launch(intent);
+        });
+    }
+
+    private void startCameraScanner() {
+        ScanOptions options = new ScanOptions();
+        options.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
+        options.setPrompt("Skieruj aparat na kod QR znajomego");
+        options.setBeepEnabled(true);
+        options.setOrientationLocked(true); // Zablokowanie w pionie
+        barcodeLauncher.launch(options);
+    }
+
+    // Obsługa wyniku zapytania o uprawnienie do aparatu
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 102) {
+            if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                startCameraScanner();
+            } else {
+                try {
+                    Toast.class.getMethod("makeText", android.content.Context.class, CharSequence.class, int.class)
+                            .invoke(null, this, "Brak uprawnień do aparatu!", Toast.LENGTH_SHORT); // lub zwykły Toast
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                } catch (NoSuchMethodException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
     }
 
     private void generateAndDisplayQr(ImageView imageView) {

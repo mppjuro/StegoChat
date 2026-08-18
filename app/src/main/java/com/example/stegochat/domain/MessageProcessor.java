@@ -33,13 +33,14 @@ public class MessageProcessor {
             String matrixRoomId,
             String matrixToken,
             long channelPrngSeed,
-            boolean isHandshake, // NOWA FLAGA
+            boolean isHandshake,
             AppDatabase db) {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
                 String messageId = UUID.randomUUID().toString();
                 long timestamp = System.currentTimeMillis();
+                String myPubKeyBase64 = CryptoEngine.encodePublicKey(CryptoEngine.getMyPublicKey());
 
                 // 1. Zapis do bazy TYLKO jeśli to nie jest Handshake
                 if (!isHandshake) {
@@ -52,12 +53,13 @@ public class MessageProcessor {
                     db.chatDao().insertMessage(chatMessage);
                 }
 
-                // 2. Przygotowanie struktury JSON zależnej od typu wiadomości
+                // 2. Przygotowanie struktury JSON zawierającej klucz nadawcy w każdym pakiecie
                 JsonObject internalPayload = new JsonObject();
+                internalPayload.addProperty("senderPubKey", myPubKeyBase64);
+
                 if (isHandshake) {
                     internalPayload.addProperty("type", "handshake");
-                    // Dla handshake'a rawText zawiera nasz klucz publiczny w Base64
-                    internalPayload.addProperty("senderPubKey", rawText);
+                    internalPayload.addProperty("convId", conversationId); // Przekazujemy ID konwersacji
                 } else {
                     internalPayload.addProperty("type", "chat");
                     internalPayload.addProperty("id", messageId);

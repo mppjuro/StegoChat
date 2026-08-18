@@ -21,10 +21,10 @@
         android:textSize="16sp"
         android:textColor="?android:attr/textColorPrimary"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="12dp"/>
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"/>
 
-    <!-- Tło wokół kodu QR dopasowane do trybu (w dark mode ciemne) -->
+    <!-- Duży kod QR wypełniający środkową część -->
     <ImageView
         android:id="@+id/hugeQrImageView"
         android:layout_width="match_parent"
@@ -33,7 +33,33 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:background="?attr/colorSurface"
-        android:padding="12dp"
+        android:padding="8dp"
         android:elevation="4dp"
         android:scaleType="fitCenter" />
+
+    <!-- Przyciski SKANUJ oraz WCZYTAJ na samym dole -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center"
+        android:background="?attr/colorSurface">
+
+        <Button
+            android:id="@+id/scanCameraButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SKANUJ"
+            android:layout_marginEnd="8dp"/>
+
+        <Button
+            android:id="@+id/scanGalleryButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="WCZYTAJ"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
 </LinearLayout>

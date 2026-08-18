@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 
 import com.example.stegochat.StegoApplication;
 import com.example.stegochat.crypto.CryptoEngine;
@@ -21,7 +23,8 @@ public class ChatViewModel extends AndroidViewModel {
 
     private final ChatRepository repository;
     private final SharedPreferences prefs;
-    private String currentConversationId;
+    private final MutableLiveData<String> currentConversationIdLive = new MutableLiveData<>();
+    private final LiveData<List<ChatMessage>> chatHistory;
 
     public ChatViewModel(@NonNull Application application) {
         super(application);
@@ -29,17 +32,24 @@ public class ChatViewModel extends AndroidViewModel {
         repository = new ChatRepository(db);
 
         prefs = application.getSharedPreferences("stego_prefs", Context.MODE_PRIVATE);
-        // Domyślnie otwórz "self_conversation" lub ostatnio zapisaną
-        currentConversationId = prefs.getString("last_conv_id", "self_conversation");
+        String savedConvId = prefs.getString("last_conv_id", "self_conversation");
+        currentConversationIdLive.setValue(savedConvId);
+
+        // Używamy SwitchMap, aby LiveData automatycznie przełączało zapytanie do bazy po zmianie ID konwersacji
+        chatHistory = Transformations.switchMap(currentConversationIdLive, repository::getMessages);
     }
 
     public void setConversationId(String convId) {
-        this.currentConversationId = convId;
         prefs.edit().putString("last_conv_id", convId).apply();
+        currentConversationIdLive.setValue(convId);
+    }
+
+    public String getCurrentConversationId() {
+        return currentConversationIdLive.getValue();
     }
 
     public LiveData<List<ChatMessage>> getChatHistory() {
-        return repository.getMessages(currentConversationId);
+        return chatHistory;
     }
 
     public void sendMessage(String text) {
@@ -47,9 +57,10 @@ public class ChatViewModel extends AndroidViewModel {
             return;
         }
 
-        String matrixToken = "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13";
-        String matrixRoomId = "!PhcUBJdMvnzrXbIrFe:matrix.org";
+        String matrixToken = "TWÓJ_TOKEN_MATRIX";
+        String matrixRoomId = "!twójRoomId:matrix.org";
         long channelSeed = 12345L;
+        String activeConvId = currentConversationIdLive.getValue();
 
         PublicKey testKey = null;
         try {
@@ -60,7 +71,7 @@ public class ChatViewModel extends AndroidViewModel {
 
         repository.sendMessage(
                 text.trim(),
-                currentConversationId,
+                activeConvId,
                 testKey,
                 matrixRoomId,
                 matrixToken,

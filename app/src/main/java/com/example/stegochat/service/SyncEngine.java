@@ -115,10 +115,8 @@ public class SyncEngine {
             input.close();
 
             if (bitmap != null) {
-                // Przekazanie do silnika steganograficznego
-                MessageReceiver.processIncomingImage(
-                        bitmap, channelSeed, myPartnerPublicKey, "default_conversation", db
-                ).join(); // join() czeka na zakończenie asynchronicznej operacji
+                // Wywołanie uniwersalne bez sztywnego klucza partnera i ID konwersacji
+                MessageReceiver.processIncomingImage(bitmap, channelSeed, db).join();
             }
         } catch (Exception e) {
             Log.e(TAG, "Błąd pobierania obrazka: " + mxcUrl, e);

@@ -82,6 +82,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        if (chatViewModel != null) {
+            String activeId = getSharedPreferences("stego_prefs", MODE_PRIVATE).getString("last_conv_id", "self_conversation");
+            chatViewModel.setConversationId(activeId);
+        }
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Wypełnienie górnego paska ikonami z pliku main_menu.xml
         getMenuInflater().inflate(R.menu.main_menu, menu);

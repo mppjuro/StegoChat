@@ -2,21 +2,24 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!-- Tryb ciemny/jasny -->
     <item
         android:id="@+id/action_theme_toggle"
         android:title="🌙"
-        android:orderInCategory="0"
-        app:showAsAction="always" />
-
-    <item
-        android:id="@+id/action_add_contact"
-        android:title="➕"
         android:orderInCategory="1"
         app:showAsAction="always" />
 
+    <!-- Plus -->
+    <item
+        android:id="@+id/action_add_contact"
+        android:title="➕"
+        android:orderInCategory="2"
+        app:showAsAction="always" />
+
+    <!-- Kontakty jako ikona lub skrót mieszczący się na ekranie -->
     <item
         android:id="@+id/action_contacts"
         android:title="KONTAKTY"
-        android:orderInCategory="2"
-        app:showAsAction="ifRoom" />
+        android:orderInCategory="3"
+        app:showAsAction="ifRoom|withText" />
 </menu>
