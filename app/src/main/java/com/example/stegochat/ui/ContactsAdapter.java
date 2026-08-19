@@ -14,6 +14,14 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
     private List<Contact> contacts = new ArrayList<>();
     private OnContactClickListener listener;
 
+    public interface OnContactLongClickListener {
+        void onContactLongClick(Contact contact);
+    }
+    private OnContactLongClickListener longClickListener;
+
+    public void setOnContactLongClickListener(OnContactLongClickListener listener) {
+        this.longClickListener = listener;
+    }
     public interface OnContactClickListener {
         void onContactClick(Contact contact);
     }
@@ -22,7 +30,6 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
         this.listener = listener;
     }
 
-    // Wewnątrz onBindViewHolder:
     @Override
     public void onBindViewHolder(@NonNull ContactViewHolder holder, int position) {
         Contact contact = contacts.get(position);
@@ -31,6 +38,14 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onContactClick(contact);
+        });
+
+        holder.itemView.setOnLongClickListener(v -> {
+            if (longClickListener != null) {
+                longClickListener.onContactLongClick(contact);
+                return true;
+            }
+            return false;
         });
     }
 

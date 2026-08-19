@@ -134,10 +134,11 @@ public class StegoBackgroundService extends Service {
                     // Wypchnięcie wiadomości z bezpiecznym kluczem (nigdy null)
                     MessageProcessor.processAndSendMessage(
                             pending.plaintext,
+                            pending.messageId,
                             conversationKey != null ? conversationKey : "default_conversation",
                             recipientPublicKey,
                             "!PhcUBJdMvnzrXbIrFe:matrix.org",
-                            "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13", // Czysty token bez polskich znaków
+                            "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13",
                             12345L,
                             pending.isHandshake,
                             db

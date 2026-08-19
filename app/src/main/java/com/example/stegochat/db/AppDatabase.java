@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase;
 
 import net.sqlcipher.database.SupportFactory;
 
-@Database(entities = {ChatMessage.class, Contact.class}, version = 5, exportSchema = false)
+@Database(entities = {ChatMessage.class, Contact.class}, version = 6, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract ChatDao chatDao();

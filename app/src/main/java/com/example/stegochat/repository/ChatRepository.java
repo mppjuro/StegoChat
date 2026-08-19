@@ -41,6 +41,7 @@ public class ChatRepository {
 
         return MessageProcessor.processAndSendMessage(
                 text,
+                null,
                 conversationId,
                 recipientPublicKey,
                 matrixRoomId,

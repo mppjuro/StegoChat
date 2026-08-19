@@ -95,6 +95,26 @@ public class ContactsActivity extends AppCompatActivity {
             finish(); // Powrót do głównego okna czatu
         });
 
+        adapter.setOnContactLongClickListener(contact -> {
+            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+            builder.setTitle("Zmień nazwę kontaktu");
+
+            final EditText input = new EditText(this);
+            input.setText(contact.name);
+            builder.setView(input);
+
+            builder.setPositiveButton("Zapisz", (dialog, which) -> {
+                String newName = input.getText().toString().trim();
+                if (!newName.isEmpty()) {
+                    new Thread(() -> {
+                        db.contactDao().updateContactName(contact.pubKeyBase64, newName);
+                    }).start();
+                }
+            });
+            builder.setNegativeButton("Anuluj", (dialog, which) -> dialog.cancel());
+            builder.show();
+        });
+
         recyclerView.setAdapter(adapter);
 
         // Obsługa przycisku "+" w widoku kontaktów (otwiera ekran QR)
@@ -195,6 +215,7 @@ public class ContactsActivity extends AppCompatActivity {
 
                 MessageProcessor.processAndSendMessage(
                         myPubKeyBase64,
+                        null,
                         newContact.conversationId,
                         recipientKey,
                         matrixRoomId,

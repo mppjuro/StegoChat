@@ -29,6 +29,7 @@ public class CoverTrafficWorker extends Worker {
                     textToHide,
                     "default_conversation",
                     null,
+                    null,
                     "!PhcUBJdMvnzrXbIrFe:matrix.org",
                     "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13",
                     12345L,

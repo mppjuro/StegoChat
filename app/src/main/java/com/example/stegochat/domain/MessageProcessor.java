@@ -28,6 +28,7 @@ public class MessageProcessor {
 
     public static CompletableFuture<Boolean> processAndSendMessage(
             String rawText,
+            String existingMessageId, // DODANO: Przekazywanie ID z bazy (lub null dla nowej)
             String conversationId,
             PublicKey recipientPublicKey,
             String matrixRoomId,
@@ -38,12 +39,13 @@ public class MessageProcessor {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
-                String messageId = UUID.randomUUID().toString();
+                // Używamy istniejącego ID (przy ponawianiu) lub generujemy nowe
+                String messageId = existingMessageId != null ? existingMessageId : UUID.randomUUID().toString();
                 long timestamp = System.currentTimeMillis();
                 String myPubKeyBase64 = CryptoEngine.encodePublicKey(CryptoEngine.getMyPublicKey());
 
-                // 1. Zapis do bazy TYLKO jeśli to nie jest Handshake
-                if (!isHandshake) {
+                // 1. Zapis do bazy TYLKO jeśli to nowa wiadomość i nie jest Handshake'm
+                if (!isHandshake && existingMessageId == null) {
                     ChatMessage chatMessage = new ChatMessage(messageId);
                     chatMessage.conversationId = conversationId;
                     chatMessage.timestamp = timestamp;
@@ -53,13 +55,12 @@ public class MessageProcessor {
                     db.chatDao().insertMessage(chatMessage);
                 }
 
-                // 2. Przygotowanie struktury JSON zawierającej klucz nadawcy w każdym pakiecie
                 JsonObject internalPayload = new JsonObject();
                 internalPayload.addProperty("senderPubKey", myPubKeyBase64);
 
                 if (isHandshake) {
                     internalPayload.addProperty("type", "handshake");
-                    internalPayload.addProperty("convId", conversationId); // Przekazujemy ID konwersacji
+                    internalPayload.addProperty("convId", conversationId);
                 } else {
                     internalPayload.addProperty("type", "chat");
                     internalPayload.addProperty("id", messageId);
@@ -67,7 +68,9 @@ public class MessageProcessor {
                     internalPayload.addProperty("msg", rawText);
                 }
 
-                String internalJson = new Gson().toJson(internalPayload);
+                // NAPRAWA: Zablokowanie ucieczki znaków (disableHtmlEscaping) ratuje payload z emotikonami
+                com.google.gson.Gson customGson = new com.google.gson.GsonBuilder().disableHtmlEscaping().create();
+                String internalJson = customGson.toJson(internalPayload);
                 byte[] rawBytes = internalJson.getBytes(StandardCharsets.UTF_8);
 
                 // 3. Kompresja GZIP i Padding

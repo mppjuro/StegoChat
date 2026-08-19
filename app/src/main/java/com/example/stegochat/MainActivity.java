@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                         getSupportActionBar().setTitle(finalTitle);
                     }
                     // Wyskakujący debug do testów z dwoma telefonami
-                    android.widget.Toast.makeText(this, "Otwarty czat: " + finalTitle + "\nID: " + activeId, android.widget.Toast.LENGTH_SHORT).show();
+                    //android.widget.Toast.makeText(this, "Otwarty czat: " + finalTitle + "\nID: " + activeId, android.widget.Toast.LENGTH_SHORT).show();
                 });
             }).start();
         }

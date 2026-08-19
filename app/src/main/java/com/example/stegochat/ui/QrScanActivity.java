@@ -220,7 +220,7 @@ public class QrScanActivity extends AppCompatActivity {
                 PublicKey recipientKey = CryptoEngine.decodePublicKey(scannedPubKeyBase64);
 
                 MessageProcessor.processAndSendMessage(
-                        myPubKeyBase64, newContact.conversationId, recipientKey,
+                        myPubKeyBase64, null, newContact.conversationId, recipientKey,
                         matrixRoomId, matrixToken, channelSeed, true, db
                 ).join();
 
