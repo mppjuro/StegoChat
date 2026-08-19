@@ -62,20 +62,29 @@ public class ChatViewModel extends AndroidViewModel {
         long channelSeed = 12345L;
         String activeConvId = currentConversationIdLive.getValue();
 
-        PublicKey testKey = null;
-        try {
-            testKey = CryptoEngine.getMyPublicKey();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Operacja na bazie musi iść w tle
+        new Thread(() -> {
+            AppDatabase db = ((StegoApplication) getApplication()).getDatabase();
+            PublicKey recipientKey = null;
 
-        repository.sendMessage(
-                text.trim(),
-                activeConvId,
-                testKey,
-                matrixRoomId,
-                matrixToken,
-                channelSeed
-        );
+            try {
+                if ("self_conversation".equals(activeConvId)) {
+                    recipientKey = CryptoEngine.getMyPublicKey();
+                } else {
+                    com.example.stegochat.db.Contact contact = db.contactDao().getContactByConversationId(activeConvId);
+                    if (contact != null) {
+                        recipientKey = CryptoEngine.decodePublicKey(contact.pubKeyBase64);
+                    } else {
+                        recipientKey = CryptoEngine.getMyPublicKey(); // Fallback
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if (recipientKey != null) {
+                repository.sendMessage(text.trim(), activeConvId, recipientKey, matrixRoomId, matrixToken, channelSeed);
+            }
+        }).start();
     }
 }

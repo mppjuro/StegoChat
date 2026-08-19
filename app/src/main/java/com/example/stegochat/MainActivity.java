@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.stegochat.db.AppDatabase;
 import com.example.stegochat.service.StegoBackgroundService;
 import com.example.stegochat.ui.ChatAdapter;
 import com.example.stegochat.ui.ChatViewModel;
@@ -87,6 +88,27 @@ public class MainActivity extends AppCompatActivity {
         if (chatViewModel != null) {
             String activeId = getSharedPreferences("stego_prefs", MODE_PRIVATE).getString("last_conv_id", "self_conversation");
             chatViewModel.setConversationId(activeId);
+
+            new Thread(() -> {
+                AppDatabase db = ((StegoApplication) getApplication()).getDatabase();
+                String title = "StegoChat (Ja)";
+
+                if (!"self_conversation".equals(activeId)) {
+                    com.example.stegochat.db.Contact contact = db.contactDao().getContactByConversationId(activeId);
+                    if (contact != null && contact.name != null) {
+                        title = contact.name;
+                    }
+                }
+
+                final String finalTitle = title;
+                runOnUiThread(() -> {
+                    if (getSupportActionBar() != null) {
+                        getSupportActionBar().setTitle(finalTitle);
+                    }
+                    // Wyskakujący debug do testów z dwoma telefonami
+                    android.widget.Toast.makeText(this, "Otwarty czat: " + finalTitle + "\nID: " + activeId, android.widget.Toast.LENGTH_SHORT).show();
+                });
+            }).start();
         }
     }
 

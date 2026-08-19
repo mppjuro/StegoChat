@@ -94,18 +94,28 @@ public class MessageProcessor {
                 StegoPayload stegoPayload = new StegoPayload(iv, encryptedSessionKey, signature, ciphertext);
                 byte[] finalBinaryPayload = stegoPayload.toBytes();
 
-                // 6. Pobranie przykrywki i wstrzyknięcie LSB
+// KROK 6: Pobranie przykrywki i wstrzyknięcie LSB
                 byte[] memeBytes = NetworkOrchestrator.fetchRandomMemeBytes().join();
-                android.graphics.BitmapFactory.Options opts = new android.graphics.BitmapFactory.Options();
-                opts.inScaled = false;
-                opts.inPremultiplied = false;
+                Bitmap rawMemeBitmap = BitmapFactory.decodeByteArray(memeBytes, 0, memeBytes.length);
+
+                // --- WYMUSZENIE SRGB DLA BITMAPY WYJŚCIOWEJ ---
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    opts.inPreferredColorSpace = android.graphics.ColorSpace.get(android.graphics.ColorSpace.Named.SRGB);
+                    if (rawMemeBitmap.getColorSpace() != null &&
+                            !rawMemeBitmap.getColorSpace().equals(android.graphics.ColorSpace.get(android.graphics.ColorSpace.Named.SRGB))) {
+                        rawMemeBitmap = rawMemeBitmap.copy(Bitmap.Config.ARGB_8888, true);
+                        rawMemeBitmap.setColorSpace(android.graphics.ColorSpace.get(android.graphics.ColorSpace.Named.SRGB));
+                    }
                 }
-                Bitmap rawMemeBitmap = BitmapFactory.decodeByteArray(memeBytes, 0, memeBytes.length, opts);
+
                 Bitmap stegoBitmap = StegoEngine.embedData(rawMemeBitmap, finalBinaryPayload, channelPrngSeed);
 
-                // 7. Konwersja na PNG
+                // Wymuszenie sRGB na bitmapie steganograficznej przed kompresją do PNG
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    stegoBitmap = stegoBitmap.copy(Bitmap.Config.ARGB_8888, true);
+                    stegoBitmap.setColorSpace(android.graphics.ColorSpace.get(android.graphics.ColorSpace.Named.SRGB));
+                }
+
+                // KROK 7: Konwersja na PNG
                 ByteArrayOutputStream pngOut = new ByteArrayOutputStream();
                 stegoBitmap.compress(Bitmap.CompressFormat.PNG, 100, pngOut);
                 byte[] stegoPngBytes = pngOut.toByteArray();

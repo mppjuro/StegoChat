@@ -112,8 +112,7 @@ public class StegoBackgroundService extends Service {
 
                     if (conversationKey != null && !conversationKey.equals("self_conversation")) {
                         // 1. Rozmowa z inną osobą
-                        com.example.stegochat.db.Contact recipientContact = db.contactDao().getContactByKey(conversationKey);
-
+                        com.example.stegochat.db.Contact recipientContact = db.contactDao().getContactByConversationId(conversationKey);
                         if (recipientContact != null) {
                             // Konwersja z Base64 na PublicKey
                             recipientPublicKey = com.example.stegochat.crypto.CryptoEngine.decodePublicKey(recipientContact.pubKeyBase64);

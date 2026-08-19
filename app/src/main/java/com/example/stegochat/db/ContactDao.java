@@ -21,4 +21,7 @@ public interface ContactDao {
 
     @Query("SELECT * FROM contacts WHERE pubKeyBase64 = :key LIMIT 1")
     Contact getContactByKey(String key);
+
+    @Query("SELECT * FROM contacts WHERE conversationId = :convId LIMIT 1")
+    Contact getContactByConversationId(String convId);
 }
