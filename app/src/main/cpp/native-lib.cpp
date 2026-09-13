@@ -22,7 +22,6 @@ Java_com_example_stegochat_network_ApiClient_getMatrixToken(JNIEnv* env, jobject
     };
 
     std::string token = deobfuscate(encToken, sizeof(encToken), 0x42);
-
     return env->NewStringUTF(token.c_str());
 }
 
@@ -37,6 +36,5 @@ Java_com_example_stegochat_network_ApiClient_getRoomId(JNIEnv* env, jobject) {
     };
 
     std::string roomId = deobfuscate(encRoom, sizeof(encRoom), 0x4B);
-
     return env->NewStringUTF(roomId.c_str());
 }
