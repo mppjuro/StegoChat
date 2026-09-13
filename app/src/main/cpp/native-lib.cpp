@@ -10,12 +10,8 @@ std::string deobfuscate(const char* encrypted, int length, char key) {
     return decrypted;
 }
 
-// Pobieranie tokenu (klucz XOR: 0x42)
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_example_stegochat_network_ApiClient_getMatrixToken(JNIEnv* env, jobject) {
-
-    // HEX(mat_aYWKJ9yC50d2WyOxz4MyC649Owl9P3_UQv8d1) ^ 42 =
-    // 2F23361D231B1509087B3B0177722670153B0D3A38760F3B0174767B0D352E7B12711D1713347A2673
     const char encToken[] = {
             0x2F, 0x23, 0x36, 0x1D, 0x23, 0x1B, 0x15, 0x09,
             0x08, 0x7B, 0x3B, 0x01, 0x77, 0x72, 0x26, 0x70,
@@ -30,11 +26,9 @@ Java_com_example_stegochat_network_ApiClient_getMatrixToken(JNIEnv* env, jobject
     return env->NewStringUTF(token.c_str());
 }
 
-// Pobieranie Room ID (klucz XOR: 0x4B)
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_stegochat_network_ApiClient_getRoomId(JNIEnv* env, jobject /* this */) {
+Java_com_example_stegochat_network_ApiClient_getRoomId(JNIEnv* env, jobject) {
 
-    // Z-XOR-owany ciąg: !PhcUBJdMvnzrXbIrFe:matrix.org
     const char encRoom[] = {
             0x6A, 0x1B, 0x23, 0x28, 0x1E, 0x09, 0x01, 0x2F,
             0x06, 0x3D, 0x25, 0x31, 0x39, 0x13, 0x29, 0x02,
