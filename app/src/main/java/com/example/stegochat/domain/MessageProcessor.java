@@ -112,12 +112,13 @@ public class MessageProcessor {
 
                 Bitmap stegoBitmap = StegoEngine.embedData(rawMemeBitmap, finalBinaryPayload, channelPrngSeed);
 
+                /*
                 // Wymuszenie sRGB na bitmapie steganograficznej przed kompresją do PNG
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                     stegoBitmap = stegoBitmap.copy(Bitmap.Config.ARGB_8888, true);
                     stegoBitmap.setColorSpace(android.graphics.ColorSpace.get(android.graphics.ColorSpace.Named.SRGB));
                 }
-
+                */
                 // KROK 7: Konwersja na PNG
                 ByteArrayOutputStream pngOut = new ByteArrayOutputStream();
                 stegoBitmap.compress(Bitmap.CompressFormat.PNG, 100, pngOut);

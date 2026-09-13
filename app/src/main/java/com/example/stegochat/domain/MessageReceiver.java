@@ -104,6 +104,9 @@ public class MessageReceiver {
 
                 return true;
 
+            } catch (javax.crypto.IllegalBlockSizeException | javax.crypto.BadPaddingException e) {
+                Log.d(TAG, "Zignorowano wiadomość: Przeznaczona dla innej osoby (nie pasuje do naszego klucza).");
+                return false;
             } catch (Exception e) {
                 Log.e(TAG, "BŁĄD ODBIORU WIADOMOŚCI: ", e);
                 return false;

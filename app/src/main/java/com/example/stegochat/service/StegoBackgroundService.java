@@ -24,6 +24,7 @@ import com.example.stegochat.db.AppDatabase;
 import com.example.stegochat.db.ChatMessage;
 import com.example.stegochat.db.Contact;
 import com.example.stegochat.domain.MessageProcessor;
+import com.example.stegochat.network.ApiClient;
 
 import java.security.PublicKey;
 import java.util.concurrent.TimeUnit;
@@ -63,8 +64,9 @@ public class StegoBackgroundService extends Service {
     }
 
     private void startServices() {
-        String matrixToken = "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13";
-        String roomId = "!PhcUBJdMvnzrXbIrFe:matrix.org";
+        ApiClient apiClient = new ApiClient();
+        String matrixToken = apiClient.getMatrixToken();
+        String roomId = apiClient.getRoomId();
         long channelSeed = 12345L;
 
         syncEngine = new SyncEngine(matrixToken, roomId, db, null, channelSeed);
@@ -130,15 +132,17 @@ public class StegoBackgroundService extends Service {
                             return; // Bezwzględnie przerywamy
                         }
                     }
-
+                    ApiClient apiClient = new ApiClient();
+                    String matrixToken = apiClient.getMatrixToken();
+                    String matrixRoomId = apiClient.getRoomId();
                     // Wypchnięcie wiadomości z bezpiecznym kluczem (nigdy null)
                     MessageProcessor.processAndSendMessage(
                             pending.plaintext,
                             pending.messageId,
                             conversationKey != null ? conversationKey : "default_conversation",
                             recipientPublicKey,
-                            "!PhcUBJdMvnzrXbIrFe:matrix.org",
-                            "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13",
+                            matrixRoomId,
+                            matrixToken,
                             12345L,
                             pending.isHandshake,
                             db

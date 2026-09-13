@@ -80,6 +80,24 @@ public class MainActivity extends AppCompatActivity {
 
         // Uruchomienie usługi w tle (nasłuch + Cover Traffic)
         startStegoService();
+
+        // Inicjalizacja domyślnego kontaktu "JA"
+        new Thread(() -> {
+            try {
+                AppDatabase db = ((StegoApplication) getApplication()).getDatabase();
+                String myKey = com.example.stegochat.crypto.CryptoEngine.encodePublicKey(
+                        com.example.stegochat.crypto.CryptoEngine.getMyPublicKey());
+
+                if (db.contactDao().getContactByKey(myKey) == null) {
+                    com.example.stegochat.db.Contact selfContact = new com.example.stegochat.db.Contact(myKey);
+                    selfContact.name = "JA (Notatnik / Sam ze sobą)";
+                    selfContact.conversationId = "self_conversation";
+                    db.contactDao().insertContact(selfContact);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     @Override
@@ -106,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                         getSupportActionBar().setTitle(finalTitle);
                     }
                     // Wyskakujący debug do testów z dwoma telefonami
-                    //android.widget.Toast.makeText(this, "Otwarty czat: " + finalTitle + "\nID: " + activeId, android.widget.Toast.LENGTH_SHORT).show();
+                    // android.widget.Toast.makeText(this, "Otwarty czat: " + finalTitle + "\nID: " + activeId, android.widget.Toast.LENGTH_SHORT).show();
                 });
             }).start();
         }

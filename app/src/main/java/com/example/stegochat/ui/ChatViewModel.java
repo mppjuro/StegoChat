@@ -14,13 +14,13 @@ import com.example.stegochat.StegoApplication;
 import com.example.stegochat.crypto.CryptoEngine;
 import com.example.stegochat.db.AppDatabase;
 import com.example.stegochat.db.ChatMessage;
+import com.example.stegochat.network.ApiClient;
 import com.example.stegochat.repository.ChatRepository;
 
 import java.security.PublicKey;
 import java.util.List;
 
 public class ChatViewModel extends AndroidViewModel {
-
     private final ChatRepository repository;
     private final SharedPreferences prefs;
     private final MutableLiveData<String> currentConversationIdLive = new MutableLiveData<>();
@@ -57,8 +57,9 @@ public class ChatViewModel extends AndroidViewModel {
             return;
         }
 
-        String matrixToken = "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13";
-        String matrixRoomId = "!PhcUBJdMvnzrXbIrFe:matrix.org";
+        ApiClient apiClient = new ApiClient();
+        String matrixToken = apiClient.getMatrixToken();
+        String matrixRoomId = apiClient.getRoomId();
         long channelSeed = 12345L;
         String activeConvId = currentConversationIdLive.getValue();
 

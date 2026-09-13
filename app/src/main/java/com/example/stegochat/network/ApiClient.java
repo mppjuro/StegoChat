@@ -7,7 +7,11 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
-
+    static {
+        System.loadLibrary("stegochat_native");
+    }
+    public native String getMatrixToken();
+    public native String getRoomId();
     private static final String MEME_BASE_URL = "https://meme-api.com/";
     // Główny publiczny serwer Matrixa. Możesz go później zmienić na dowolny inny serwer Matrix.
     private static final String MATRIX_BASE_URL = "https://matrix-client.matrix.org/";

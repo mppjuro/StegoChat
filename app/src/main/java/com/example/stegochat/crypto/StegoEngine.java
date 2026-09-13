@@ -74,7 +74,7 @@ public class StegoEngine {
             int channel = index % 3; // 0=Red, 1=Green, 2=Blue
             int bitVal = (dataToEmbed[i / 8] >> (7 - (i % 8))) & 1;
             int p = pixels[pixelIndex];
-            int a = Color.alpha(p);
+            int a = 255;
             int r = Color.red(p);
             int g = Color.green(p);
             int b = Color.blue(p);

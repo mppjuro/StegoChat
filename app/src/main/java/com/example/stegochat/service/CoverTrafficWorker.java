@@ -8,10 +8,15 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import com.example.stegochat.StegoApplication;
+import com.example.stegochat.crypto.CryptoEngine;
 import com.example.stegochat.db.AppDatabase;
 import com.example.stegochat.domain.MessageProcessor;
+import com.example.stegochat.network.ApiClient;
 
 public class CoverTrafficWorker extends Worker {
+    static {
+        System.loadLibrary("stegochat_native");
+    }
 
     public CoverTrafficWorker(@NonNull Context context, @NonNull WorkerParameters params) {
         super(context, params);
@@ -24,14 +29,14 @@ public class CoverTrafficWorker extends Worker {
         try {
             AppDatabase db = ((StegoApplication) getApplicationContext()).getDatabase();
             String textToHide = "COVER_TRAFFIC_JUNK_DATA";
-
+            ApiClient apiClient = new ApiClient();
             MessageProcessor.processAndSendMessage(
                     textToHide,
                     "default_conversation",
                     null,
-                    null,
-                    "!PhcUBJdMvnzrXbIrFe:matrix.org",
-                    "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13",
+                    CryptoEngine.getMyPublicKey(),
+                    apiClient.getMatrixToken(),
+                    apiClient.getRoomId(),
                     12345L,
                     false,
                     db

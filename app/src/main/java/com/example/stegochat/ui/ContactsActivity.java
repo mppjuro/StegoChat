@@ -23,6 +23,7 @@ import com.example.stegochat.crypto.CryptoEngine;
 import com.example.stegochat.db.AppDatabase;
 import com.example.stegochat.db.Contact;
 import com.example.stegochat.domain.MessageProcessor;
+import com.example.stegochat.network.ApiClient;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.MultiFormatReader;
@@ -43,9 +44,9 @@ public class ContactsActivity extends AppCompatActivity {
     private AppDatabase db;
     private ImageView myQrImageView;
     private RecyclerView contactsRecyclerView;
-
-    private final String matrixToken = "mct_9EdOHRAQ9PAEucY8YmXUtMhDDoDQKN_nDZD13";
-    private final String matrixRoomId = "!PhcUBJdMvnzrXbIrFe:matrix.org";
+    ApiClient apiClient = new ApiClient();
+    private final String matrixToken = apiClient.getMatrixToken();
+    private final String matrixRoomId = apiClient.getRoomId();
     private final long channelSeed = 12345L;
 
     // Skaner aparatu
