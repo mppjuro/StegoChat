@@ -22,6 +22,9 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
+import javax.crypto.KeyGenerator;
 
 public class CryptoEngine {
 
@@ -29,6 +32,7 @@ public class CryptoEngine {
     private static final String ALIAS_IDENTITY = "stegochat_identity";
     private static final int GCM_TAG_LENGTH = 128;
     public static final int GCM_IV_LENGTH = 12;
+    private static final String ALIAS_DB_KEY = "stegochat_db_key";
 
     /**
      * Generuje parę kluczy RSA-4096 w bezpiecznym środowisku sprzętowym (TEE),
@@ -187,5 +191,36 @@ public class CryptoEngine {
         java.security.spec.X509EncodedKeySpec spec = new java.security.spec.X509EncodedKeySpec(keyBytes);
         java.security.KeyFactory kf = java.security.KeyFactory.getInstance(KeyProperties.KEY_ALGORITHM_RSA);
         return kf.generatePublic(spec);
+    }
+    /**
+     * Generuje (jeśli nie istnieje) i pobiera klucz AES z Android Keystore
+     * przeznaczony do szyfrowania bazy danych SQLCipher.
+     */
+    public static byte[] getOrGenerateDbKey() throws Exception {
+        KeyStore keyStore = KeyStore.getInstance(KEYSTORE_PROVIDER);
+        keyStore.load(null);
+
+        // Generuj klucz, jeśli nie ma go jeszcze w bezpiecznym magazynie
+        if (!keyStore.containsAlias(ALIAS_DB_KEY)) {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(
+                    KeyProperties.KEY_ALGORITHM_AES, KEYSTORE_PROVIDER);
+
+            KeyGenParameterSpec spec = new KeyGenParameterSpec.Builder(
+                    ALIAS_DB_KEY,
+                    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                    .setKeySize(256)
+                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                    // Zakomentowane ze względu na działanie StegoBackgroundService w tle:
+                    // .setUserAuthenticationRequired(true)
+                    .build();
+
+            keyGenerator.init(spec);
+            keyGenerator.generateKey();
+        }
+
+        // Pobranie i zwrócenie czystych bajtów klucza dla SQLCipher
+        SecretKey secretKey = (SecretKey) keyStore.getKey(ALIAS_DB_KEY, null);
+        return secretKey.getEncoded();
     }
 }
