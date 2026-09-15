@@ -92,6 +92,11 @@ public class MessageReceiver {
                 long timestamp = internalPayload.get("t").getAsLong();
                 String text = internalPayload.get("msg").getAsString();
 
+                if (text == "COVER_TRAFFIC_JUNK_DATA") {
+                    Log.d(TAG, "Zignorowano wiadomość: Cover traffic.");
+                    return false;
+                }
+
                 ChatMessage chatMessage = new ChatMessage(msgId);
                 chatMessage.conversationId = conversationId;
                 chatMessage.timestamp = timestamp;

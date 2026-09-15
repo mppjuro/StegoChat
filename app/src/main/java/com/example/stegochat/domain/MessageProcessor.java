@@ -22,12 +22,9 @@ import java.util.concurrent.CompletableFuture;
 import javax.crypto.SecretKey;
 
 public class MessageProcessor {
-
     private static final String TAG = "MessageProcessor";
     private static final int PADDING_BLOCK_SIZE = 1024;
-
-    // Domyślny estymowany limit (używany przed pobraniem obrazka)
-    public static final int MAX_LSB_CAPACITY_BYTES = 375 * 1024;
+    public static final int MAX_LSB_CAPACITY_BYTES = 375 * 1024; // 1 MPix meme
 
     /**
      * Wstępne przeliczanie wielkości payloadu uwzględniające UTF-8, nagłówki, AES-GCM i podpis cyfrowy.
@@ -89,7 +86,7 @@ public class MessageProcessor {
             long channelPrngSeed,
             boolean isHandshake,
             AppDatabase db,
-            byte[] preFetchedMemeBytes) { // DODANO: pobrany zawczasu mem
+            byte[] preFetchedMemeBytes) {
 
         return CompletableFuture.supplyAsync(() -> {
             try {
