@@ -92,7 +92,7 @@ public class MessageReceiver {
                 long timestamp = internalPayload.get("t").getAsLong();
                 String text = internalPayload.get("msg").getAsString();
 
-                if (text == "COVER_TRAFFIC_JUNK_DATA") {
+                if ("COVER_TRAFFIC_JUNK_DATA".equals(text)) {
                     Log.d(TAG, "Zignorowano wiadomość: Cover traffic.");
                     return false;
                 }
