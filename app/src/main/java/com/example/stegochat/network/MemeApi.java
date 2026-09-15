@@ -4,7 +4,6 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 
 public interface MemeApi {
-
     // Zwraca losowego mema z Reddita
     @GET("gimme")
     Call<MemeResponse> getRandomMeme();

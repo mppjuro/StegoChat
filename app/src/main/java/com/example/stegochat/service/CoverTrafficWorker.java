@@ -32,14 +32,15 @@ public class CoverTrafficWorker extends Worker {
             ApiClient apiClient = new ApiClient();
             MessageProcessor.processAndSendMessage(
                     textToHide,
-                    "default_conversation",
                     null,
+                    "default_conversation",
                     CryptoEngine.getMyPublicKey(),
-                    apiClient.getMatrixToken(),
                     apiClient.getRoomId(),
+                    apiClient.getMatrixToken(),
                     12345L,
                     false,
-                    db
+                    db,
+                    null
             ).join();
 
             Log.d("CoverTrafficWorker", "Sztuczny szum wysłany poprawnie.");

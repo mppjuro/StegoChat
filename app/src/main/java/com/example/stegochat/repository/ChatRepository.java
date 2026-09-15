@@ -37,7 +37,8 @@ public class ChatRepository {
             PublicKey recipientPublicKey,
             String matrixRoomId,
             String matrixToken,
-            long channelPrngSeed) {
+            long channelPrngSeed,
+            byte[] preFetchedMemeBytes) {
 
         return MessageProcessor.processAndSendMessage(
                 text,
@@ -48,7 +49,8 @@ public class ChatRepository {
                 matrixToken,
                 channelPrngSeed,
                 false,
-                db
+                db,
+                preFetchedMemeBytes
         );
     }
 }

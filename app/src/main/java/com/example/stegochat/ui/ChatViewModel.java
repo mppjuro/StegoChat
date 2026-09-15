@@ -52,7 +52,7 @@ public class ChatViewModel extends AndroidViewModel {
         return chatHistory;
     }
 
-    public void sendMessage(String text) {
+    public void sendMessage(String text, byte[] preFetchedMemeBytes) {
         if (text == null || text.trim().isEmpty()) {
             return;
         }
@@ -63,7 +63,6 @@ public class ChatViewModel extends AndroidViewModel {
         long channelSeed = 12345L;
         String activeConvId = currentConversationIdLive.getValue();
 
-        // Operacja na bazie musi iść w tle
         new Thread(() -> {
             AppDatabase db = ((StegoApplication) getApplication()).getDatabase();
             PublicKey recipientKey = null;
@@ -76,7 +75,7 @@ public class ChatViewModel extends AndroidViewModel {
                     if (contact != null) {
                         recipientKey = CryptoEngine.decodePublicKey(contact.pubKeyBase64);
                     } else {
-                        recipientKey = CryptoEngine.getMyPublicKey(); // Fallback
+                        recipientKey = CryptoEngine.getMyPublicKey();
                     }
                 }
             } catch (Exception e) {
@@ -84,7 +83,7 @@ public class ChatViewModel extends AndroidViewModel {
             }
 
             if (recipientKey != null) {
-                repository.sendMessage(text.trim(), activeConvId, recipientKey, matrixRoomId, matrixToken, channelSeed);
+                repository.sendMessage(text.trim(), activeConvId, recipientKey, matrixRoomId, matrixToken, channelSeed, preFetchedMemeBytes);
             }
         }).start();
     }

@@ -223,7 +223,8 @@ public class ContactsActivity extends AppCompatActivity {
                         matrixToken,
                         channelSeed,
                         true, // isHandshake = true
-                        db
+                        db,
+                        null
                 ).join();
 
             } catch (Exception e) {

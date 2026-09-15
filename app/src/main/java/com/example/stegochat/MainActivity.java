@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
@@ -20,37 +22,44 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.stegochat.db.AppDatabase;
+import com.example.stegochat.domain.MessageProcessor;
+import com.example.stegochat.network.NetworkOrchestrator;
 import com.example.stegochat.service.StegoBackgroundService;
 import com.example.stegochat.ui.ChatAdapter;
 import com.example.stegochat.ui.ChatViewModel;
 import com.example.stegochat.ui.ContactsActivity;
 import com.example.stegochat.ui.QrScanActivity;
+import com.google.android.material.snackbar.Snackbar;
 
 public class MainActivity extends AppCompatActivity {
 
     private ChatViewModel chatViewModel;
     private ChatAdapter adapter;
+    private EditText messageInput;
+    private Button sendButton;
+
+    // Przechowywanie pobranego mema i jego faktycznej pojemności
+    private byte[] preFetchedMeme = null;
+    private int currentMemeCapacity = MessageProcessor.MAX_LSB_CAPACITY_BYTES;
+    private boolean isFetchingMeme = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Konfiguracja własnego Toolbara (górnej belki)
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // Zapytanie o uprawnienia do powiadomień (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
             }
         }
 
-        // Inicjalizacja elementów widoku
         RecyclerView recyclerView = findViewById(R.id.chatRecyclerView);
-        EditText messageInput = findViewById(R.id.messageEditText);
-        Button sendButton = findViewById(R.id.sendButton);
+        messageInput = findViewById(R.id.messageEditText);
+        sendButton = findViewById(R.id.sendButton);
 
         adapter = new ChatAdapter();
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
@@ -58,10 +67,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
 
-        // Podłączenie ViewModelu
         chatViewModel = new ViewModelProvider(this).get(ChatViewModel.class);
-
-        // Obserwowanie historii konwersacji z bazy danych
         chatViewModel.getChatHistory().observe(this, messages -> {
             adapter.setMessages(messages);
             if (messages.size() > 0) {
@@ -69,19 +75,67 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Obsługa wysyłania wiadomości
-        sendButton.setOnClickListener(v -> {
-            String text = messageInput.getText().toString();
-            if (!text.isEmpty()) {
-                chatViewModel.sendMessage(text);
-                messageInput.setText("");
+        // Nasłuch na żywo
+        sendButton.setEnabled(false);
+        messageInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String text = s.toString();
+
+                if (!text.trim().isEmpty() && preFetchedMeme == null && !isFetchingMeme) {
+                    isFetchingMeme = true;
+                    validateMessageSize(text); // Pokazuje "pobieram mema"
+
+                    NetworkOrchestrator.fetchRandomMemeBytes().thenAccept(bytes -> {
+                        runOnUiThread(() -> {
+                            preFetchedMeme = bytes;
+                            isFetchingMeme = false;
+                            currentMemeCapacity = MessageProcessor.calculateMemeCapacityBytes(bytes);
+                            validateMessageSize(messageInput.getText().toString());
+                        });
+                    }).exceptionally(ex -> {
+                        runOnUiThread(() -> {
+                            isFetchingMeme = false;
+                            validateMessageSize(messageInput.getText().toString());
+                        });
+                        return null;
+                    });
+                } else if (text.trim().isEmpty()) {
+                    // Reset jeśli użytkownik usunął cały tekst
+                    preFetchedMeme = null;
+                    currentMemeCapacity = MessageProcessor.MAX_LSB_CAPACITY_BYTES;
+                }
+
+                validateMessageSize(text);
             }
         });
 
-        // Uruchomienie usługi w tle (nasłuch + Cover Traffic)
+        sendButton.setOnClickListener(v -> {
+            String text = messageInput.getText().toString();
+            if (!text.trim().isEmpty()) {
+                int estimatedSize = MessageProcessor.calculatePayloadSize(text);
+                if (estimatedSize > currentMemeCapacity) {
+                    Snackbar.make(v, "Nie wysłano, wiadomość zbyt długa", Snackbar.LENGTH_LONG).show();
+                    return;
+                }
+
+                chatViewModel.sendMessage(text, preFetchedMeme);
+
+                // Reset po wysłaniu wiadomości
+                messageInput.setText("");
+                preFetchedMeme = null;
+                currentMemeCapacity = MessageProcessor.MAX_LSB_CAPACITY_BYTES;
+            }
+        });
+
         startStegoService();
 
-        // Inicjalizacja domyślnego kontaktu "JA"
         new Thread(() -> {
             try {
                 AppDatabase db = ((StegoApplication) getApplication()).getDatabase();
@@ -100,6 +154,41 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    private void validateMessageSize(String text) {
+        if (text.trim().isEmpty()) {
+            sendButton.setEnabled(false);
+            messageInput.setError(null);
+            return;
+        }
+
+        int estimatedSize = MessageProcessor.calculatePayloadSize(text);
+
+        if (preFetchedMeme == null) {
+            if (isFetchingMeme) {
+                sendButton.setEnabled(false);
+                messageInput.setError("Pobieram nośnik steganograficzny (mema)...");
+            } else {
+                // Tryb awaryjny - jeśli pobieranie padło, blokujemy w oparciu o domyślną pojemność
+                if (estimatedSize > MessageProcessor.MAX_LSB_CAPACITY_BYTES) {
+                    sendButton.setEnabled(false);
+                    messageInput.setError("Wiadomość jest zbyt długa (max ~375 kB)");
+                } else {
+                    sendButton.setEnabled(true);
+                    messageInput.setError(null);
+                }
+            }
+        } else {
+            // Obraz pobrany - sztywna walidacja do jego rozmiaru!
+            if (estimatedSize > currentMemeCapacity) {
+                sendButton.setEnabled(false);
+                messageInput.setError("Zbyt długa (max " + (currentMemeCapacity / 1024) + " kB dla wybranego na ten moment obrazka)");
+            } else {
+                sendButton.setEnabled(true);
+                messageInput.setError(null);
+            }
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -110,7 +199,6 @@ public class MainActivity extends AppCompatActivity {
             new Thread(() -> {
                 AppDatabase db = ((StegoApplication) getApplication()).getDatabase();
                 String title = "StegoChat (Ja)";
-
                 if (!"self_conversation".equals(activeId)) {
                     com.example.stegochat.db.Contact contact = db.contactDao().getContactByConversationId(activeId);
                     if (contact != null && contact.name != null) {
@@ -123,8 +211,6 @@ public class MainActivity extends AppCompatActivity {
                     if (getSupportActionBar() != null) {
                         getSupportActionBar().setTitle(finalTitle);
                     }
-                    // Wyskakujący debug do testów z dwoma telefonami
-                    // android.widget.Toast.makeText(this, "Otwarty czat: " + finalTitle + "\nID: " + activeId, android.widget.Toast.LENGTH_SHORT).show();
                 });
             }).start();
         }
@@ -132,7 +218,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Wypełnienie górnego paska ikonami z pliku main_menu.xml
         getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
     }
@@ -142,11 +227,7 @@ public class MainActivity extends AppCompatActivity {
         MenuItem themeItem = menu.findItem(R.id.action_theme_toggle);
         if (themeItem != null) {
             int currentNightMode = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
-            if (currentNightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
-                themeItem.setTitle("☀️"); // Słońce w trybie ciemnym
-            } else {
-                themeItem.setTitle("🌙"); // Księżyc w trybie jasnym
-            }
+            themeItem.setTitle(currentNightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES ? "☀️" : "🌙");
         }
         return super.onPrepareOptionsMenu(menu);
     }
@@ -156,21 +237,20 @@ public class MainActivity extends AppCompatActivity {
         int itemId = item.getItemId();
         if (itemId == R.id.action_theme_toggle) {
             int currentNightMode = getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK;
-            if (currentNightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES) {
-                androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
-            } else {
-                androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES);
-            }
+            androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(
+                    currentNightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES ?
+                            androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO : androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES);
             return true;
         } else if (itemId == R.id.action_add_contact) {
-            startActivity(new Intent(this, com.example.stegochat.ui.QrScanActivity.class));
+            startActivity(new Intent(this, QrScanActivity.class));
             return true;
         } else if (itemId == R.id.action_contacts) {
-            startActivity(new Intent(this, com.example.stegochat.ui.ContactsActivity.class));
+            startActivity(new Intent(this, ContactsActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
+
     private void startStegoService() {
         Intent serviceIntent = new Intent(this, StegoBackgroundService.class);
         ContextCompat.startForegroundService(this, serviceIntent);

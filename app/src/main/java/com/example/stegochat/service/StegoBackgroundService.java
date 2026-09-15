@@ -135,7 +135,6 @@ public class StegoBackgroundService extends Service {
                     ApiClient apiClient = new ApiClient();
                     String matrixToken = apiClient.getMatrixToken();
                     String matrixRoomId = apiClient.getRoomId();
-                    // Wypchnięcie wiadomości z bezpiecznym kluczem (nigdy null)
                     MessageProcessor.processAndSendMessage(
                             pending.plaintext,
                             pending.messageId,
@@ -145,7 +144,8 @@ public class StegoBackgroundService extends Service {
                             matrixToken,
                             12345L,
                             pending.isHandshake,
-                            db
+                            db,
+                            null // preFetchedMemeBytes
                     ).join();
 
                     Log.d(TAG, "Prawdziwa wiadomość została pomyślnie przepchnięta w eter!");

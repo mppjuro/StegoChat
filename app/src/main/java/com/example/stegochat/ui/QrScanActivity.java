@@ -223,7 +223,7 @@ public class QrScanActivity extends AppCompatActivity {
 
                 MessageProcessor.processAndSendMessage(
                         myPubKeyBase64, null, newContact.conversationId, recipientKey,
-                        matrixRoomId, matrixToken, channelSeed, true, db
+                        matrixRoomId, matrixToken, channelSeed, true, db, null
                 ).join();
 
             } catch (Exception e) {
